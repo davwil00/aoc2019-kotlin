@@ -6,38 +6,25 @@ import kotlin.math.max
 
 class FuelRequirementCalculator {
 
-    fun calculateTotalFuel(): Int {
-        var total = 0
-        readInput().forEachLine {
-            val mass = Integer.parseInt(it)
-            total += calculateFuel(mass)
-        }
+    fun calculateTotalFuel(): Int = calculateTotal(::calculateFuel)
 
-        return total
-    }
-
-    fun calculateTotalFuelIncFuelWeight(): Int {
-        var total = 0
-        readInput().forEachLine {
-            val mass = Integer.parseInt(it)
-            total += calculateFuelForModuleAndFuel(mass)
-        }
-
-        return total
-    }
+    fun calculateTotalFuelIncFuelWeight(): Int = calculateTotal{ mass -> calculateFuelForModuleAndFuel(mass) }
 
     fun calculateFuel(mass: Int): Int = max(0, floor(mass / 3.0).toInt() - 2)
 
-    fun calculateFuelForModuleAndFuel(mass: Int): Int {
-        var totalFuel = calculateFuel(mass)
-        var additionalFuelRequired = totalFuel
+    tailrec fun calculateFuelForModuleAndFuel(mass: Int, total: Int = 0): Int {
+        val fuelForMass = calculateFuel(mass)
+        return if (fuelForMass <= 0) total else calculateFuelForModuleAndFuel(fuelForMass, fuelForMass + total)
+    }
 
-        do {
-            additionalFuelRequired = calculateFuel(additionalFuelRequired)
-            totalFuel += additionalFuelRequired
-        } while (additionalFuelRequired > 0)
+    private fun calculateTotal(calculator: (mass: Int) -> Int): Int {
+        var total = 0
+        readInput().forEachLine {
+            val mass = Integer.parseInt(it)
+            total += calculator(mass)
+        }
 
-        return totalFuel
+        return total
     }
 
     private fun readInput() = File("src/main/resources/day01/input.txt")
