@@ -4,48 +4,62 @@ import java.io.File
 
 class IntcodeCalculator {
 
-    fun restoreGravityAssist(): Int {
-        val program = readInput().toMutableList()
-        program[1] = 12
-        program[2] = 2
+    fun completeGravityAssist(target: Int): Pair<Int, Int> {
+        for (noun in 0..99) {
+            for (verb in 0..99) {
+                val answer = restoreGravityAssist(noun, verb)
+                if (answer == target) {
+                    return Pair(noun, verb)
+                }
+            }
+        }
 
-        val result = calculateIntcode(program)
+        throw RuntimeException("Answer not found")
+    }
+
+    fun restoreGravityAssist(noun: Int, verb: Int): Int {
+        val memory = readInput().toMutableList()
+        memory[1] = noun
+        memory[2] = verb
+
+        val result = calculateIntcode(memory)
         return result[0]
     }
 
-    internal fun calculateIntcode(program: MutableList<Int>): List<Int> {
-        var currentOffset = 0
+    internal fun calculateIntcode(memory: MutableList<Int>): List<Int> {
+        var instructionPointer = 0
+        val valuesInInstruction = 4
         var ended = false
 
         while (!ended) {
-            when (program[currentOffset]) {
-                1 -> opcode1(program, currentOffset)
-                2 -> opcode2(program, currentOffset)
+            when (memory[instructionPointer]) {
+                1 -> opcode1(memory, instructionPointer)
+                2 -> opcode2(memory, instructionPointer)
                 99 -> ended = true
             }
 
-            currentOffset += 4
+            instructionPointer += valuesInInstruction
         }
 
-        return program
+        return memory
     }
 
     fun opcode1(sequence: MutableList<Int>, offset: Int) {
-        val pos1 = sequence[1 + offset]
-        val pos2 = sequence[2 + offset]
-        val pos3 = sequence[3 + offset]
+        val address1 = sequence[1 + offset]
+        val address2 = sequence[2 + offset]
+        val address3 = sequence[3 + offset]
 
-        val result = sequence[pos1] + sequence[pos2]
-        sequence[pos3] = result
+        val result = sequence[address1] + sequence[address2]
+        sequence[address3] = result
     }
 
     fun opcode2(sequence: MutableList<Int>, offset: Int) {
-        val pos1 = sequence[1 + offset]
-        val pos2 = sequence[2 + offset]
-        val pos3 = sequence[3 + offset]
+        val address1 = sequence[1 + offset]
+        val address2 = sequence[2 + offset]
+        val address3 = sequence[3 + offset]
 
-        val result = sequence[pos1] * sequence[pos2]
-        sequence[pos3] = result
+        val result = sequence[address1] * sequence[address2]
+        sequence[address3] = result
     }
 
 
@@ -57,6 +71,7 @@ class IntcodeCalculator {
 
 fun main() {
     val intcodeCalculator = IntcodeCalculator()
-    println(intcodeCalculator.restoreGravityAssist())
-
+    println(intcodeCalculator.restoreGravityAssist(12, 2))
+    val (noun, verb) = intcodeCalculator.completeGravityAssist(19690720)
+    println("noun = $noun, verb = $verb, answer = ${100 * noun + verb}")
 }

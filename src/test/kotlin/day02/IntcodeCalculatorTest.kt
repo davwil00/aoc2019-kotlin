@@ -39,4 +39,12 @@ internal class IntcodeCalculatorTest {
 
         assertEquals(expected, actual)
     }
+
+    @Test
+    fun `completeGravityAssist should find noun and verb for input`() {
+        val (noun, verb) = testSubject.completeGravityAssist(3516593)
+
+        assertEquals(12, noun)
+        assertEquals(2, verb)
+    }
 }
