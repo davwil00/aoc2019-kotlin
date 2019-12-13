@@ -1,16 +1,18 @@
 package day05
 
-import Intcode.IntcodeComputer
+import intcode.IntcodeComputer
 
 class ThermalEnvironmentSupervisionTerminal {
 
-    fun runTEST() {
+    fun runTEST(input: Int) {
         val intcodeComputer = IntcodeComputer()
         val memory = intcodeComputer.readInput("src/main/resources/day05/input.txt")
-        intcodeComputer.calculateIntcode(memory.toMutableList(), 1)
+        intcodeComputer.calculateIntcode(memory.toMutableList(), input)
+        println(intcodeComputer.output)
     }
 }
 
 fun main() {
-    ThermalEnvironmentSupervisionTerminal().runTEST()
+    ThermalEnvironmentSupervisionTerminal().runTEST(1)
+    ThermalEnvironmentSupervisionTerminal().runTEST(5)
 }

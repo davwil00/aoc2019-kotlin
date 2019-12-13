@@ -1,6 +1,6 @@
 package day02
 
-import Intcode.IntcodeComputer
+import intcode.IntcodeComputer
 
 class GravityAssist {
 
