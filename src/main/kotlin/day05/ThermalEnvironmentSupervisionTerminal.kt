@@ -7,7 +7,7 @@ class ThermalEnvironmentSupervisionTerminal {
     fun runTEST() {
         val intcodeComputer = IntcodeComputer()
         val memory = intcodeComputer.readInput("src/main/resources/day05/input.txt")
-        intcodeComputer.calculateIntcode(memory.toMutableList())
+        intcodeComputer.calculateIntcode(memory.toMutableList(), 1)
     }
 }
 

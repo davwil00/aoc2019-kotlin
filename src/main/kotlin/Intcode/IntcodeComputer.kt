@@ -5,7 +5,7 @@ import java.lang.IllegalArgumentException
 
 class IntcodeComputer {
 
-    internal fun calculateIntcode(memory: MutableList<Int>): List<Int> {
+    internal fun calculateIntcode(memory: MutableList<Int>, input: Int? = null): List<Int> {
         var instructionPointer = 0
         var valuesInInstruction: Int
         var ended = false
@@ -16,7 +16,7 @@ class IntcodeComputer {
             valuesInInstruction = when (opcode) {
                 1 -> opcode1(memory, instructionPointer, parameterModes)
                 2 -> opcode2(memory, instructionPointer, parameterModes)
-                3 -> opcode3(memory, instructionPointer, parameterModes)
+                3 -> opcode3(memory, instructionPointer, input!!, parameterModes)
                 4 -> opcode4(memory, instructionPointer, parameterModes)
                 99 -> { ended = true; 0 }
                 else -> throw IllegalArgumentException("Unknown value $opcode, pointer: $instructionPointer")
@@ -50,17 +50,17 @@ class IntcodeComputer {
         return 4
     }
 
-    fun opcode3(sequence: MutableList<Int>, offset: Int, parameterModes: List<ParameterMode>): Int {
+    fun opcode3(sequence: MutableList<Int>, offset: Int, input: Int, parameterModes: List<ParameterMode>): Int {
         val param1 = getParamValue(sequence, 1 + offset, 0, parameterModes)
 
-        sequence[param1] = 1
+        sequence[param1] = input
 
         return 2
     }
 
     fun opcode4(sequence: MutableList<Int>, offset: Int, parameterModes: List<ParameterMode>): Int {
         val param1 = getParamValue(sequence, 1 + offset, 0, parameterModes)
-        println("Output is $param1")
+        println("Output is ${sequence[param1]}")
 
         return 2
     }
