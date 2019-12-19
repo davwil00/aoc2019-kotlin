@@ -71,7 +71,6 @@ class AmplifierController {
         (min..max)
             .map { it.toString().padStart(5, '0') }
             .filter { it.matches(regex) && it.length == 5 }
-            .map { it.toCharArray() }
             .map { it.map { c -> c.toString().toInt() } }
             .forEach { permutations.add(it.toSet()) }
 

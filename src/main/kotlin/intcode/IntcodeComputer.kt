@@ -123,7 +123,6 @@ class IntcodeComputer(private val program: MutableList<Int>, private val inputs:
             val instStr = instruction.toString()
             val opcode = instStr.substring(2).toInt()
             val parameterModes = instStr.substring(0, instStr.length - 2)
-                .toCharArray()
                 .map { ParameterMode.fromMode(it.toString().toInt()) }
                 .reversed()
             Pair(parameterModes, opcode)
