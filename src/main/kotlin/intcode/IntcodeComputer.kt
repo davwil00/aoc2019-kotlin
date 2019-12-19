@@ -3,27 +3,26 @@ package intcode
 import java.io.File
 import java.lang.IllegalArgumentException
 
-class IntcodeComputer() {
+class IntcodeComputer(private val program: MutableList<Int>, private val inputs: MutableList<Int> = mutableListOf()) {
 
-    val output = mutableListOf<Int>()
+    private var instructionPointer = 0
+    private var valuesInInstruction: Int = 0
+    private val output = mutableListOf<Int>()
+    var ended = false
 
-    internal fun calculateIntcode(memory: MutableList<Int>, input: Int? = null): List<Int> {
-        var instructionPointer = 0
-        var valuesInInstruction: Int
-        var ended = false
-
+    fun calculateIntcode(): List<Int> {
         while (!ended) {
-            val instruction = memory[instructionPointer]
+            val instruction = program[instructionPointer]
             val (parameterModes, opcode) = readInstruction(instruction)
             valuesInInstruction = when (opcode) {
-                1 -> add(memory, instructionPointer, parameterModes)
-                2 -> multiply(memory, instructionPointer, parameterModes)
-                3 -> input(memory, instructionPointer, input!!, parameterModes)
-                4 -> output(memory, instructionPointer, parameterModes)
-                5 -> jumpIfTrue(memory, instructionPointer, parameterModes)
-                6 -> jumpIfFalse(memory, instructionPointer, parameterModes)
-                7 -> lessThan(memory, instructionPointer, parameterModes)
-                8 -> equals(memory, instructionPointer, parameterModes)
+                1 -> add(parameterModes)
+                2 -> multiply(parameterModes)
+                3 -> input(inputs.removeAt(0), parameterModes)
+                4 -> output(parameterModes)
+                5 -> jumpIfTrue(parameterModes)
+                6 -> jumpIfFalse(parameterModes)
+                7 -> lessThan(parameterModes)
+                8 -> isEqual(parameterModes)
                 99 -> { ended = true; 0 }
                 else -> throw IllegalArgumentException("Unknown value $opcode, pointer: $instructionPointer")
             }
@@ -31,88 +30,91 @@ class IntcodeComputer() {
             instructionPointer += valuesInInstruction
         }
 
-        return memory
+        return output
     }
 
-    fun add(sequence: MutableList<Int>, offset: Int, parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(sequence, sequence[1 + offset], 0, parameterModes)
-        val param2 = getParamValue(sequence, sequence[2 + offset], 1, parameterModes)
-        val param3 = getParamValue(sequence, 3 + offset, 2, parameterModes)
+    fun getOutput(): Int {
+        return output.last()
+    }
+
+    fun supplyInput(input: Int) {
+        inputs.add(input)
+    }
+
+    private fun add(parameterModes: List<ParameterMode>): Int {
+        val param1 = getParamValue(program, program[1 + instructionPointer], 0, parameterModes)
+        val param2 = getParamValue(program, program[2 + instructionPointer], 1, parameterModes)
+        val param3 = getParamValue(program, 3 + instructionPointer, 2, parameterModes)
 
         val result = param1 + param2
-        sequence[param3] = result
+        program[param3] = result
 
         return 4
     }
 
-    fun multiply(sequence: MutableList<Int>, offset: Int, parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(sequence, sequence[1 + offset], 0, parameterModes)
-        val param2 = getParamValue(sequence, sequence[2 + offset], 1, parameterModes)
-        val param3 = getParamValue(sequence, 3 + offset, 2, parameterModes)
+    private fun multiply(parameterModes: List<ParameterMode>): Int {
+        val param1 = getParamValue(program, program[1 + instructionPointer], 0, parameterModes)
+        val param2 = getParamValue(program, program[2 + instructionPointer], 1, parameterModes)
+        val param3 = getParamValue(program, 3 + instructionPointer, 2, parameterModes)
 
         val result = param1 * param2
-        sequence[param3] = result
+        program[param3] = result
 
         return 4
     }
 
-    fun input(sequence: MutableList<Int>, offset: Int, input: Int, parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(sequence, 1 + offset, 0, parameterModes)
+    private fun input(input: Int, parameterModes: List<ParameterMode>): Int {
+        val param1 = getParamValue(program, 1 + instructionPointer, 0, parameterModes)
 
-        sequence[param1] = input
+        program[param1] = input
 
         return 2
     }
 
-    fun output(sequence: MutableList<Int>, offset: Int, parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(sequence, 1 + offset, 0, parameterModes)
-        output += sequence[param1]
+    private fun output(parameterModes: List<ParameterMode>): Int {
+        val param1 = getParamValue(program, 1 + instructionPointer, 0, parameterModes)
+        output += program[param1]
 
         return 2
     }
 
-    fun jumpIfTrue(sequence: MutableList<Int>, offset: Int, parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(sequence, 1 + offset, 0, parameterModes)
-        val param2 = getParamValue(sequence, 2 + offset, 1, parameterModes)
+    private fun jumpIfTrue(parameterModes: List<ParameterMode>): Int {
+        val param1 = getParamValue(program, 1 + instructionPointer, 0, parameterModes)
+        val param2 = getParamValue(program, 2 + instructionPointer, 1, parameterModes)
 
-        return if (sequence[param1] != 0) {
-            sequence[param2] - offset
+        return if (program[param1] != 0) {
+            program[param2] - instructionPointer
         } else 3
     }
 
-    fun jumpIfFalse(sequence: MutableList<Int>, offset: Int, parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(sequence, 1 + offset, 0, parameterModes)
-        val param2 = getParamValue(sequence, 2 + offset, 1, parameterModes)
+    private fun jumpIfFalse(parameterModes: List<ParameterMode>): Int {
+        val param1 = getParamValue(program, 1 + instructionPointer, 0, parameterModes)
+        val param2 = getParamValue(program, 2 + instructionPointer, 1, parameterModes)
 
-        return if (sequence[param1] == 0) {
-            sequence[param2] - offset
+        return if (program[param1] == 0) {
+            program[param2] - instructionPointer
         } else 3
     }
 
-    fun lessThan(sequence: MutableList<Int>, offset: Int, parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(sequence, 1 + offset, 0, parameterModes)
-        val param2 = getParamValue(sequence, 2 + offset, 1, parameterModes)
-        val param3 = getParamValue(sequence, 3 + offset, 2, parameterModes)
+    private fun lessThan(parameterModes: List<ParameterMode>): Int {
+        val param1 = getParamValue(program, 1 + instructionPointer, 0, parameterModes)
+        val param2 = getParamValue(program, 2 + instructionPointer, 1, parameterModes)
+        val param3 = getParamValue(program, 3 + instructionPointer, 2, parameterModes)
 
-        sequence[param3] = if (sequence[param1] < sequence[param2]) 1 else 0
+        program[param3] = if (program[param1] < program[param2]) 1 else 0
 
         return 4
     }
 
-    fun equals(sequence: MutableList<Int>, offset: Int, parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(sequence, 1 + offset, 0, parameterModes)
-        val param2 = getParamValue(sequence, 2 + offset, 1, parameterModes)
-        val param3 = getParamValue(sequence, 3 + offset, 2, parameterModes)
+    private fun isEqual(parameterModes: List<ParameterMode>): Int {
+        val param1 = getParamValue(program, 1 + instructionPointer, 0, parameterModes)
+        val param2 = getParamValue(program, 2 + instructionPointer, 1, parameterModes)
+        val param3 = getParamValue(program, 3 + instructionPointer, 2, parameterModes)
 
-        sequence[param3] = if (sequence[param1] == sequence[param2]) 1 else 0
+        program[param3] = if (program[param1] == program[param2]) 1 else 0
 
         return 4
     }
-
-    fun readInput(inputPath: String): List<Int> = File(inputPath)
-        .readText()
-        .split(",")
-        .map { it.toInt() }
 
     private fun readInstruction(instruction: Int): Pair<List<ParameterMode>, Int> {
         return if (instruction < 100) {
@@ -145,5 +147,12 @@ class IntcodeComputer() {
                 return values().first { it.mode == mode }
             }
         }
+    }
+
+    companion object {
+        fun readInput(inputPath: String): List<Int> = File(inputPath)
+            .readText()
+            .split(",")
+            .map { it.toInt() }
     }
 }

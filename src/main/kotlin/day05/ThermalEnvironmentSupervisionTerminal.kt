@@ -5,10 +5,10 @@ import intcode.IntcodeComputer
 class ThermalEnvironmentSupervisionTerminal {
 
     fun runTEST(input: Int) {
-        val intcodeComputer = IntcodeComputer()
-        val memory = intcodeComputer.readInput("src/main/resources/day05/input.txt")
-        intcodeComputer.calculateIntcode(memory.toMutableList(), input)
-        println(intcodeComputer.output)
+        val program = IntcodeComputer.readInput("src/main/resources/day05/input.txt")
+        val intcodeComputer = IntcodeComputer(program.toMutableList(), mutableListOf(input))
+        val output = intcodeComputer.calculateIntcode()
+        println(output)
     }
 }
 
