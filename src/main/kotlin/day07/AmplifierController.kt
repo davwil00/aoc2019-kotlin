@@ -4,10 +4,10 @@ import intcode.IntcodeComputer
 
 class AmplifierController {
 
-    fun findMaxSettings(program: List<Int>, useFeedbackLoop: Boolean): Pair<Int, List<Int>> {
-        var max = 0
-        var maxSettings = listOf<Int>()
-        val allowedValues = if (useFeedbackLoop) setOf(5, 6, 7, 8, 9) else setOf(0, 1, 2, 3, 4)
+    fun findMaxSettings(program: List<Long>, useFeedbackLoop: Boolean): Pair<Long, List<Long>> {
+        var max = 0L
+        var maxSettings = listOf<Long>()
+        val allowedValues = if (useFeedbackLoop) setOf(5L, 6L, 7L, 8L, 9L) else setOf(0L, 1L, 2L, 3L, 4L)
         generateCombinations(allowedValues)
             .map { it.toList() }
             .forEach {
@@ -22,8 +22,8 @@ class AmplifierController {
         return Pair(max, maxSettings)
     }
 
-    private fun calculateOutputSignal(program: List<Int>, inputs: List<Int>): Int {
-        var input2 = 0
+    private fun calculateOutputSignal(program: List<Long>, inputs: List<Long>): Long {
+        var input2 = 0L
         inputs.forEach { it ->
             val intcodeComputer = IntcodeComputer(program.toMutableList(), mutableListOf(it, input2))
             val output = intcodeComputer.calculateIntcode()
@@ -37,7 +37,7 @@ class AmplifierController {
         lateinit var nextAmp: Amp
     }
 
-    private fun calculateOutputSignalWithFeedbackLoop(program: List<Int>, inputs: List<Int>): Int {
+    private fun calculateOutputSignalWithFeedbackLoop(program: List<Long>, inputs: List<Long>): Long {
         val ampA = Amp(IntcodeComputer(program.toMutableList(), mutableListOf(inputs[0], 0)), 'A')
         val ampB = Amp(IntcodeComputer(program.toMutableList(), mutableListOf(inputs[1])), 'B')
         val ampC = Amp(IntcodeComputer(program.toMutableList(), mutableListOf(inputs[2])), 'C')
@@ -63,15 +63,15 @@ class AmplifierController {
         if (!amp.nextAmp.amp.ended) runAmp(amp.nextAmp)
     }
 
-    private fun generateCombinations(allowedValues: Set<Int>): List<Set<Int>> {
-        val min = allowedValues.sorted().joinToString("").toInt()
-        val max = allowedValues.sortedDescending().joinToString("").toInt()
+    private fun generateCombinations(allowedValues: Set<Long>): List<Set<Long>> {
+        val min = allowedValues.sorted().joinToString("").toLong()
+        val max = allowedValues.sortedDescending().joinToString("").toLong()
         val regex = Regex("^(?:([${allowedValues.min()}-${allowedValues.max()}])(?!.*\\1)){5}\$")
-        val permutations = mutableListOf<Set<Int>>()
+        val permutations = mutableListOf<Set<Long>>()
         (min..max)
             .map { it.toString().padStart(5, '0') }
             .filter { it.matches(regex) && it.length == 5 }
-            .map { it.map { c -> c.toString().toInt() } }
+            .map { it.map { c -> c.toString().toLong() } }
             .forEach { permutations.add(it.toSet()) }
 
         return permutations
