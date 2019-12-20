@@ -122,7 +122,7 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
     }
 
     private fun adjustRelativeBase(parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(0L, 0, parameterModes).toInt()
+        val param1 = getParamValue(1L, 0, parameterModes).toInt()
 
         relativeBase += program[param1]
 

@@ -10,17 +10,19 @@ internal class BasicOperationOfSystemTestTest {
     @Test
     fun quineTest() {
         val program: MutableList<Long> = mutableListOf(109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99)
-        val result = IntcodeComputer(program, mutableListOf()).calculateIntcode()
+        val intcodeComputer = IntcodeComputer(program, mutableListOf())
+        val result = intcodeComputer.calculateIntcode()
 
-        assertEquals(listOf(109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99), result)
+        assertEquals(listOf<Long>(109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99), result)
     }
 
-    @Ignore
+    @Test
     fun longNumberTest() {
         val program: MutableList<Long> = mutableListOf(1102,34915192,34915192,7,4,7,99,0)
-        val result = IntcodeComputer(program, mutableListOf()).calculateIntcode()
+        val intcodeComputer = IntcodeComputer(program, mutableListOf())
+        intcodeComputer.calculateIntcode()
 
-        assertEquals(16, result.toString().length)
+        assertEquals(16, intcodeComputer.getOutput().toString().length)
     }
 
     @Test

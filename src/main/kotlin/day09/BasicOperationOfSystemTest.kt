@@ -1,7 +1,6 @@
 package day09
 
 import intcode.IntcodeComputer
-import java.io.File
 
 class BasicOperationOfSystemTest {
 
