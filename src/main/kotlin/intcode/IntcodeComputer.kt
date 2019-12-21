@@ -1,37 +1,47 @@
 package intcode
 
+import org.slf4j.LoggerFactory
 import java.io.File
 
 class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableList<Long> = mutableListOf()) {
 
-    private var instructionPointer = 0
-    private var valuesInInstruction = 0
+    private var instructionPointer = 0L
+    private var valuesInInstruction = 0L
     private var relativeBase = 0L
     private val output = mutableListOf<Long>()
-    var ended = false
-    val program = Program(originalProgram)
+    private val logger = LoggerFactory.getLogger(IntcodeComputer::class.java)
 
+    var ended = false
+    private val program = originalProgram
+        .mapIndexed{i, v -> i.toLong() to v}
+        .toMap()
+        .toMutableMap()
+        .withDefault { 0L }
+
+    val state
+        get() = program.values.toList()
     fun calculateIntcode(): List<Long> {
         while (!ended) {
-            val instruction = program[instructionPointer]
+            val instruction = program.getValue(instructionPointer)
             val (parameterModes, opcode) = readInstruction(instruction)
-
+            logger.debug("{} processing opcode {}", opcode)
             valuesInInstruction = when (opcode) {
-                1 -> add(parameterModes)
-                2 -> multiply(parameterModes)
-                3 -> input(inputs.removeAt(0), parameterModes)
-                4 -> output(parameterModes)
-                5 -> jumpIfTrue(parameterModes)
-                6 -> jumpIfFalse(parameterModes)
-                7 -> lessThan(parameterModes)
-                8 -> isEqual(parameterModes)
-                9 -> adjustRelativeBase(parameterModes)
-                99 -> {
+                1L -> add(parameterModes)
+                2L -> multiply(parameterModes)
+                3L -> input(inputs.removeAt(0), parameterModes)
+                4L -> output(parameterModes)
+                5L -> jumpIfTrue(parameterModes)
+                6L -> jumpIfFalse(parameterModes)
+                7L -> lessThan(parameterModes)
+                8L -> isEqual(parameterModes)
+                9L -> adjustRelativeBase(parameterModes)
+                99L -> {
                     ended = true; 0
                 }
                 else -> throw IllegalArgumentException("Unknown value $opcode, pointer: $instructionPointer")
             }
 
+            logger.debug("moving instruction pointer to {}", instructionPointer + valuesInInstruction)
             instructionPointer += valuesInInstruction
         }
 
@@ -46,118 +56,129 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
         inputs.add(input)
     }
 
-    private fun add(parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(program[1 + instructionPointer], 0, parameterModes)
-        val param2 = getParamValue(program[2 + instructionPointer], 1, parameterModes)
-        val param3 = getParamValue(3L + instructionPointer, 2, parameterModes).toInt()
+    private fun add(parameterModes: List<ParameterMode>): Long {
+        val param1 = program.getValue(getParamValue(1, 0, parameterModes))
+        val param2 = program.getValue(getParamValue(2, 1, parameterModes))
+        val param3 = getParamValue(3, 2, parameterModes)
 
         val result = param1 + param2
+        logger.debug("Setting #{} to {}", param3, result)
         program[param3] = result
 
         return 4
     }
 
-    private fun multiply(parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(program[1 + instructionPointer], 0, parameterModes)
-        val param2 = getParamValue(program[2 + instructionPointer], 1, parameterModes)
-        val param3 = getParamValue(3L + instructionPointer, 2, parameterModes).toInt()
+    private fun multiply(parameterModes: List<ParameterMode>): Long {
+        val param1 = program.getValue(getParamValue(1, 0, parameterModes))
+        val param2 = program.getValue(getParamValue(2, 1, parameterModes))
+        val param3 = getParamValue(3, 2, parameterModes)
 
         val result = param1 * param2
+        logger.debug("setting #{} to {}", param3, result)
         program[param3] = result
 
         return 4
     }
 
-    private fun input(input: Long, parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(1L + instructionPointer, 0, parameterModes).toInt()
+    private fun input(input: Long, parameterModes: List<ParameterMode>): Long {
+        val param1 = getParamValue(1, 0, parameterModes)
 
+        logger.debug("setting #{} to input {}", param1, input)
         program[param1] = input
 
         return 2
     }
 
-    private fun output(parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(1L + instructionPointer, 0, parameterModes).toInt()
-        output += program[param1]
+    private fun output(parameterModes: List<ParameterMode>): Long {
+        val param1 = getParamValue(1, 0, parameterModes)
+        logger.debug("outputting value at #{}", param1)
+        output += program.getValue(param1)
 
         return 2
     }
 
-    private fun jumpIfTrue(parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(1L + instructionPointer, 0, parameterModes).toInt()
-        val param2 = getParamValue(2L + instructionPointer, 1, parameterModes).toInt()
+    private fun jumpIfTrue(parameterModes: List<ParameterMode>): Long {
+        val param1 = getParamValue(1, 0, parameterModes)
+        val param2 = getParamValue(2, 1, parameterModes)
 
+        logger.debug("checking if #{} is not 0 [it is {}]", param1, program[param1])
         return if (program[param1] != 0L) {
-            (program[param2] - instructionPointer).toInt()
+            program.getValue(param2) - instructionPointer
         } else 3
     }
 
-    private fun jumpIfFalse(parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(1L + instructionPointer, 0, parameterModes).toInt()
-        val param2 = getParamValue(2L + instructionPointer, 1, parameterModes).toInt()
+    private fun jumpIfFalse(parameterModes: List<ParameterMode>): Long {
+        val param1 = getParamValue(1, 0, parameterModes)
+        val param2 = getParamValue(2, 1, parameterModes)
 
+        logger.debug("checking if #{} is 0 [it is {}]", param1, program[param1])
         return if (program[param1] == 0L) {
-            (program[param2] - instructionPointer).toInt()
+            (program.getValue(param2) - instructionPointer)
         } else 3
     }
 
-    private fun lessThan(parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(1L + instructionPointer, 0, parameterModes).toInt()
-        val param2 = getParamValue(2L + instructionPointer, 1, parameterModes).toInt()
-        val param3 = getParamValue(3L + instructionPointer, 2, parameterModes).toInt()
+    private fun lessThan(parameterModes: List<ParameterMode>): Long {
+        val param1 = getParamValue(1, 0, parameterModes)
+        val param2 = getParamValue(2, 1, parameterModes)
+        val param3 = getParamValue(3, 2, parameterModes)
 
-        program[param3] = if (program[param1] < program[param2]) 1 else 0
-
-        return 4
-    }
-
-    private fun isEqual(parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(1L + instructionPointer, 0, parameterModes).toInt()
-        val param2 = getParamValue(2L + instructionPointer, 1, parameterModes).toInt()
-        val param3 = getParamValue(3L + instructionPointer, 2, parameterModes).toInt()
-
-        program[param3] = if (program[param1] == program[param2]) 1 else 0
+        val result = if (program.getValue(param1) < program.getValue(param2)) 1L else 0L
+        logger.debug("setting #{} to {}", param3, result)
+        program[param3] = result
 
         return 4
     }
 
-    private fun adjustRelativeBase(parameterModes: List<ParameterMode>): Int {
-        val param1 = getParamValue(1L, 0, parameterModes).toInt()
+    private fun isEqual(parameterModes: List<ParameterMode>): Long {
+        val param1 = getParamValue(1, 0, parameterModes)
+        val param2 = getParamValue(2, 1, parameterModes)
+        val param3 = getParamValue(3, 2, parameterModes)
 
-        relativeBase += program[param1]
+        val result = if (program[param1] == program.getValue(param2)) 1L else 0L
+        logger.debug("setting #{} to {}", param3, result)
+        program[param3] = result
+
+        return 4
+    }
+
+    private fun adjustRelativeBase(parameterModes: List<ParameterMode>): Long {
+        val param1 = getParamValue(1, 0, parameterModes)
+        logger.debug("adjusting relative base by {}", program.getValue(param1))
+        relativeBase += program.getValue(param1)
 
         return 2
     }
 
-    private fun readInstruction(instruction: Long): Pair<List<ParameterMode>, Int> {
+    fun readInstruction(instruction: Long): Pair<List<ParameterMode>, Long> {
         return if (instruction < 100) {
-            Pair(listOf(ParameterMode.POSITION), instruction.toInt())
+            Pair(listOf(ParameterMode.POSITION), instruction)
         } else {
             val instStr = instruction.toString()
-            val opcode = instStr.substring(2).toInt()
+            val opcode = instStr.substring(instStr.length - 2).toLong()
             val parameterModes = instStr.substring(0, instStr.length - 2)
-                .map { ParameterMode.fromMode(it.toString().toInt()) }
+                .map { ParameterMode.fromMode(it.toString().toLong()) }
                 .reversed()
             Pair(parameterModes, opcode)
         }
     }
 
-    private fun getParamValue(param: Long, argNum: Int, parameterModes: List<ParameterMode>): Long {
-        val mode = parameterModes.getOrElse(argNum) { _ -> ParameterMode.POSITION}
+    private fun getParamValue(param: Long, argNum: Long, parameterModes: List<ParameterMode>): Long {
+        val mode = parameterModes.getOrElse(argNum.toInt()) { _ -> ParameterMode.POSITION}
+        val index = param + instructionPointer
         return when(mode) {
-            ParameterMode.POSITION -> program[param.toInt()]
-            ParameterMode.IMMEDIATE -> param
-            ParameterMode.RELATIVE -> program[param.toInt()] + relativeBase
+            ParameterMode.POSITION -> program.getValue(index)
+            ParameterMode.IMMEDIATE -> index
+            ParameterMode.RELATIVE -> program.getValue(index) + relativeBase
         }
     }
 
-    enum class ParameterMode(private val mode: Int) {
+    enum class ParameterMode(private val mode: Long) {
         POSITION(0),
         IMMEDIATE(1),
         RELATIVE(2);
 
         companion object {
-            fun fromMode(mode: Int): ParameterMode {
+            fun fromMode(mode: Long): ParameterMode {
                 return values().first { it.mode == mode }
             }
         }
@@ -168,21 +189,5 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
             .readText()
             .split(",")
             .map { it.toLong() }
-    }
-
-    class Program(contents: List<Long>): ArrayList<Long>(contents) {
-        override fun get(index: Int): Long {
-            while (index > size - 1) {
-                add(0)
-            }
-            return super.get(index)
-        }
-
-        override fun set(index: Int, element: Long): Long {
-            while (index > size - 1) {
-                add(0)
-            }
-            return super.set(index, element)
-        }
     }
 }

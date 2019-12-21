@@ -1,5 +1,6 @@
 package intcode
 
+import intcode.IntcodeComputer.ParameterMode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -13,7 +14,7 @@ internal class IntcodeComputerTest {
         val intcodeComputer = IntcodeComputer(program)
         intcodeComputer.calculateIntcode()
 
-        assertEquals(listOf<Long>(1, 5, 6, 70, 99, 30, 40, 50), intcodeComputer.program)
+        assertEquals(listOf<Long>(1, 5, 6, 70, 99, 30, 40, 50), intcodeComputer.state)
     }
 
     @Test
@@ -22,7 +23,7 @@ internal class IntcodeComputerTest {
         val intcodeComputer = IntcodeComputer(program)
         intcodeComputer.calculateIntcode()
 
-        assertEquals(listOf<Long>(3500, 5, 7, 0, 99, 70, 40, 50), intcodeComputer.program)
+        assertEquals(listOf<Long>(3500, 5, 7, 0, 99, 70, 40, 50), intcodeComputer.state)
     }
 
     @Test
@@ -31,7 +32,7 @@ internal class IntcodeComputerTest {
         val intcodeComputer = IntcodeComputer(program)
         intcodeComputer.calculateIntcode()
 
-        assertEquals(listOf<Long>(1002, 4, 3, 4, 99), intcodeComputer.program)
+        assertEquals(listOf<Long>(1002, 4, 3, 4, 99), intcodeComputer.state)
     }
 
     @ParameterizedTest
@@ -48,7 +49,7 @@ internal class IntcodeComputerTest {
 
         intcodeComputer.calculateIntcode()
 
-        assertEquals(expected, intcodeComputer.program)
+        assertEquals(expected, intcodeComputer.state)
     }
 
     @ParameterizedTest
@@ -113,5 +114,24 @@ internal class IntcodeComputerTest {
 
         val output = IntcodeComputer(program, mutableListOf()).calculateIntcode()
         assertEquals(listOf<Long>(109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99), output)
+    }
+
+    @Test
+    fun readInstruction() {
+        val intcodeComputer = IntcodeComputer(emptyList(), mutableListOf())
+
+        var result = intcodeComputer.readInstruction(21108)
+        assertEquals(Pair(listOf(ParameterMode.IMMEDIATE, ParameterMode.IMMEDIATE, ParameterMode.RELATIVE), 8L), result)
+
+        result = intcodeComputer.readInstruction(8)
+        assertEquals(Pair(listOf(ParameterMode.POSITION), 8L), result)
+
+        result = intcodeComputer.readInstruction(1008)
+        assertEquals(Pair(listOf(ParameterMode.POSITION, ParameterMode.IMMEDIATE), 8L), result)
+    }
+
+    @Test
+    fun `test op1 in relative mode`() {
+        val prog = listOf(109, 8, 1201, -8, 0, 63)
     }
 }

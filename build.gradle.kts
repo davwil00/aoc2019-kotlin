@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.konan.target.PredefinedKonanTargets.getByName
 
 plugins {
     kotlin("jvm") version "1.3.31"
@@ -16,6 +15,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("ch.qos.logback:logback-classic:1.2.3")
     testImplementation("org.junit.jupiter:junit-jupiter:5.5.2")
 }
 
@@ -30,17 +30,4 @@ tasks {
             jvmTarget = "1.8"
         }
     }
-
-//    register("resolveDependencies") {
-//        doLast {
-//            fun resolve(configurations: ConfigurationContainer) {
-//                configurations.filter { it.isCanBeResolved }
-//                    .forEach { it.resolve() }
-//            }
-//            project.rootProject.allprojects.forEach {
-//                resolve(it.buildscript.configurations)
-//                resolve(it.configurations)
-//            }
-//        }
-//    }
 }

@@ -24,7 +24,7 @@ class GravityAssist {
         val intcodeComputer = IntcodeComputer(program)
 
         intcodeComputer.calculateIntcode()
-        return intcodeComputer.program[0]
+        return intcodeComputer.state[0]
     }
 }
 

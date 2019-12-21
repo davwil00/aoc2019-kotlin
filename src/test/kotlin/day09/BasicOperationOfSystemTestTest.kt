@@ -32,4 +32,28 @@ internal class BasicOperationOfSystemTestTest {
 
         assertEquals(listOf(1125899906842624), result)
     }
+
+    @Test
+    fun testInputInMode0() {
+        val program = listOf<Long>(3,10,4,10,3,11,4,11,99)
+        val intcodeComputer = IntcodeComputer(program, mutableListOf(1, 2))
+        val result = intcodeComputer.calculateIntcode()
+
+        assertEquals(listOf<Long>(1, 2), result)
+    }
+
+    @Test
+    fun testInputInMode2() {
+        val program = listOf<Long>(
+            109,20, // set offset to 20
+            203,10, // read input and store in position 30
+            4,30, // output value at position 30
+            3,11, // read input and store in pos 31
+            4,11, // output value in pos 31
+            99, 31)
+        val intcodeComputer = IntcodeComputer(program, mutableListOf(1, 2))
+        val result = intcodeComputer.calculateIntcode()
+
+        assertEquals(listOf<Long>(1, 2), result)
+    }
 }
