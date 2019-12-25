@@ -24,7 +24,7 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
         while (!ended) {
             val instruction = program.getValue(instructionPointer)
             val (parameterModes, opcode) = readInstruction(instruction)
-            logger.debug("{} processing opcode {}", opcode)
+            logger.debug("processing opcode {}", opcode)
             valuesInInstruction = when (opcode) {
                 1L -> add(parameterModes)
                 2L -> multiply(parameterModes)
@@ -50,6 +50,10 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
 
     fun getOutput(): Long {
         return output.last()
+    }
+
+    fun getAllOutput(): List<Long> {
+        return output
     }
 
     fun supplyInput(input: Long) {
@@ -163,7 +167,7 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
     }
 
     private fun getParamValue(param: Long, argNum: Long, parameterModes: List<ParameterMode>): Long {
-        val mode = parameterModes.getOrElse(argNum.toInt()) { _ -> ParameterMode.POSITION}
+        val mode = parameterModes.getOrElse(argNum.toInt()) { ParameterMode.POSITION }
         val index = param + instructionPointer
         return when(mode) {
             ParameterMode.POSITION -> program.getValue(index)
