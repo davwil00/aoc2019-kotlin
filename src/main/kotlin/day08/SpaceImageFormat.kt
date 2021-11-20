@@ -33,7 +33,7 @@ class SpaceImageFormat {
 
     fun findLayerWithFewestZeros(layers: List<Layer>): Int {
         val zerosInLayers = layers.map { countOccurrencesOfValInLayer(it, 0) }
-        return zerosInLayers.indexOf(zerosInLayers.min())
+        return zerosInLayers.indexOf(zerosInLayers.minOrNull())
     }
 
     fun countOccurrencesOfValInLayer(layer: Layer, valToCount: Int): Int {

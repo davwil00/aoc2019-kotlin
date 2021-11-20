@@ -15,7 +15,7 @@ class MonitoringStation {
     }
 
     fun findMonitoringStationLocation(map: Map<Point, Int>) =
-        map.maxBy { (_, locations) -> locations }!!.key
+        map.maxByOrNull { (_, locations) -> locations }!!.key
 
     private fun createMapOfAsteroids(input: String): Map<Point, MutableList<AsteroidLocation>> {
         val map = mutableMapOf<Point, MutableList<AsteroidLocation>>()

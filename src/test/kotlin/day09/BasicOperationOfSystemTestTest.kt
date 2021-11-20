@@ -1,7 +1,6 @@
 package day09
 
 import intcode.IntcodeComputer
-import jdk.nashorn.internal.ir.annotations.Ignore
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -27,7 +26,7 @@ internal class BasicOperationOfSystemTestTest {
 
     @Test
     fun longNumberTest2() {
-        val program = mutableListOf(104,1125899906842624,99)
+        val program = mutableListOf(104,1125899906842624L,99)
         val result = IntcodeComputer(program, mutableListOf()).calculateIntcode()
 
         assertEquals(listOf(1125899906842624), result)

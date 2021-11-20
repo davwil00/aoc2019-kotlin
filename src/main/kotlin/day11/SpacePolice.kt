@@ -59,10 +59,10 @@ class SpacePolice {
     }
 
     fun printHull(hull: Map<Point, Boolean>) {
-        val minX = hull.minBy { (k, _) -> k.first }!!.key.first
-        val maxX = hull.maxBy { (k, _) -> k.first }!!.key.first
-        val minY = hull.minBy { (k, _) -> k.second }!!.key.second
-        val maxY = hull.maxBy { (k, _) -> k.second }!!.key.second
+        val minX = hull.minByOrNull { (k, _) -> k.first }!!.key.first
+        val maxX = hull.maxByOrNull { (k, _) -> k.first }!!.key.first
+        val minY = hull.minByOrNull { (k, _) -> k.second }!!.key.second
+        val maxY = hull.maxByOrNull { (k, _) -> k.second }!!.key.second
 
         for (y in minY..maxY) {
             for (x in minX..maxX) {

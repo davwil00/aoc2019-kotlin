@@ -66,7 +66,7 @@ class AmplifierController {
     private fun generateCombinations(allowedValues: Set<Long>): List<Set<Long>> {
         val min = allowedValues.sorted().joinToString("").toLong()
         val max = allowedValues.sortedDescending().joinToString("").toLong()
-        val regex = Regex("^(?:([${allowedValues.min()}-${allowedValues.max()}])(?!.*\\1)){5}\$")
+        val regex = Regex("^(?:([${allowedValues.minOrNull()}-${allowedValues.maxOrNull()}])(?!.*\\1)){5}\$")
         val permutations = mutableListOf<Set<Long>>()
         (min..max)
             .map { it.toString().padStart(5, '0') }

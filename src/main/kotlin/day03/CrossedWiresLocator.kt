@@ -11,7 +11,7 @@ class CrossedWiresLocator {
         plotWire(circuit, wirePath2, 2)
 
         val crossedWireLocations = circuit.filterValues { it.size > 1 }.keys
-        return crossedWireLocations.map { abs(it.x) + abs(it.y) }.min()!!
+        return crossedWireLocations.map { abs(it.x) + abs(it.y) }.minOrNull()!!
     }
 
     fun getMinimumStepsIntersection(wirePath1: String, wirePath2: String): Int {
@@ -20,7 +20,7 @@ class CrossedWiresLocator {
         plotWire(circuit, wirePath2, 2)
 
         val crossedWireLocations = circuit.filterValues { it.size > 1 }.values
-        return crossedWireLocations.map { it.fold(0) { acc: Int, p2: Point -> acc + p2.stepNo } }.min()!!
+        return crossedWireLocations.map { it.fold(0) { acc: Int, p2: Point -> acc + p2.stepNo } }.minOrNull()!!
     }
 
     private fun plotWire(circuit: Circuit, wirePath: String, wireNo: Int) {
