@@ -14,8 +14,8 @@ internal class NBodyProblemTest {
 <x=4, y=-8, z=8>
 <x=3, y=5, z=-1>"""
         val moons = nBodyProblem.parseInput(input)
-        val newMoons = nBodyProblem.calculateGravity(moons)
-        newMoons.forEach { println(it) }
+        nBodyProblem.applyGravity(moons)
+        moons.forEach { println(it) }
     }
 
     @Test
