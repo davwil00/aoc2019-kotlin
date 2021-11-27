@@ -10,6 +10,7 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
     private var relativeBase = 0L
     private val output = mutableListOf<Long>()
     private val logger = LoggerFactory.getLogger(IntcodeComputer::class.java)
+    private var inputProvider: IntcodeInputProvider? = null
 
     var ended = false
     private val program = originalProgram
@@ -20,6 +21,7 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
 
     val state
         get() = program.values.toList()
+
     fun calculateIntcode(): List<Long> {
         while (!ended) {
             val instruction = program.getValue(instructionPointer)
@@ -28,7 +30,7 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
             valuesInInstruction = when (opcode) {
                 1L -> add(parameterModes)
                 2L -> multiply(parameterModes)
-                3L -> input(inputs.removeAt(0), parameterModes)
+                3L -> input(parameterModes)
                 4L -> output(parameterModes)
                 5L -> jumpIfTrue(parameterModes)
                 6L -> jumpIfFalse(parameterModes)
@@ -60,6 +62,10 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
         inputs.add(input)
     }
 
+    fun registerInputProvider(inputProvider: IntcodeInputProvider) {
+        this.inputProvider = inputProvider
+    }
+
     private fun add(parameterModes: List<ParameterMode>): Long {
         val param1 = program.getValue(getParamValue(1, 0, parameterModes))
         val param2 = program.getValue(getParamValue(2, 1, parameterModes))
@@ -84,7 +90,11 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
         return 4
     }
 
-    private fun input(input: Long, parameterModes: List<ParameterMode>): Long {
+    private fun input(parameterModes: List<ParameterMode>): Long {
+        if (inputs.isEmpty()) {
+            inputProvider?.let { supplyInput(it.getNext(this)) }
+        }
+        val input = inputs.removeAt(0)
         val param1 = getParamValue(1, 0, parameterModes)
 
         logger.debug("setting #{} to input {}", param1, input)
@@ -191,7 +201,12 @@ class IntcodeComputer(originalProgram: List<Long>, private val inputs: MutableLi
     companion object {
         fun readInput(inputPath: String): List<Long> = File(inputPath)
             .readText()
+            .trim()
             .split(",")
             .map { it.toLong() }
     }
+}
+
+interface IntcodeInputProvider {
+    fun getNext(intcodeComputer: IntcodeComputer): Long
 }
